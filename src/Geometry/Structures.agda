@@ -1,30 +1,44 @@
-module Geometry.Structures where
+module Geometry.Structures {ℓ} where
 
 open import Level
 
 open import Data.Empty.Polymorphic using (⊥)
+open import Data.Sum using (_⊎_)
+open import Data.Product using (_×_)
 open import Data.Unit.Polymorphic using (⊤)
-open import Relation.Unary as P using (Pred; _≐_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
+
+Pred : Set ℓ → Set (suc ℓ)
+Pred A = A → Set ℓ
 
 -- Geometry as predicates on a point type?
 -- Every member of the type is drawn.
 
-record Geometry {ℓ} : Set (suc ℓ) where
+record Geometry : Set (suc ℓ) where
+  infixl 6 _⊢⊣_
+  infixl 5 _+_
   field
+    -- A type for points, e.g. ℝ²
     Point : Set ℓ
+
+    -- A type for distances between points
     Distance : Set ℓ
-    distance : Point → Point → Distance
+
+    -- Measure the distance between two points
+    _⊢⊣_ : Point → Point → Distance
+
+    -- Add the distance between two points
     _+_ : Distance → Distance → Distance
+    +-comm : (a b : Distance) → a + b ≡ b + a
 
     -- TODO: Angles
 
   Drawing : Set (suc ℓ)
-  Drawing = Pred Point ℓ
+  Drawing = Pred Point
 
   -- Is this point in this drawing?
   _∈_ : Point → Drawing → Set _
-  _∈_ = P._∈_
+  p ∈ P = P p
 
   -- Empty drawing
   ∅ : Drawing
@@ -40,22 +54,22 @@ record Geometry {ℓ} : Set (suc ℓ) where
 
   -- All intersection points of two drawings
   _∩_ : Drawing → Drawing → Drawing
-  _∩_ = P._∩_
+  (P ∩ Q) p = P p ⊎ Q p
   infixl 4 _∩_
 
   -- Both drawings
   _∪_ : Drawing → Drawing → Drawing
-  _∪_ = P._∪_
+  (P ∪ Q) p = P p × Q p
   infixl 4 _∪_
 
   -- A line from point-to-point (input with \.\em\.)
   _∙—∙_ : Point → Point → Drawing
-  (a ∙—∙ b) p = distance a p + distance b p ≡ distance a b
+  (a ∙—∙ b) p = a ⊢⊣ p + b ⊢⊣ p ≡ a ⊢⊣ b
   infixl 5 _∙—∙_
 
   -- An extension of a line to infinity on the right (doesn't draw between the points, only beyond)
   _∙~∙→_ : Point → Point → Drawing
-  (a ∙~∙→ b) p = distance a p ≡ distance a b + distance b p
+  (a ∙~∙→ b) p = a ⊢⊣ p ≡ a ⊢⊣ b + b ⊢⊣ p
 
   -- An extension of a line to infinity on the left (doesn't draw between the points, only beyond)
   _←∙~∙_ : Point → Point → Drawing
@@ -75,15 +89,20 @@ record Geometry {ℓ} : Set (suc ℓ) where
 
   -- A circle centred on a point with a radius
   ⨀ : Point → Distance → Drawing
-  ⨀ c r p = distance c p ≡ r
+  ⨀ c r p = c ⊢⊣ p ≡ r
 
   -- A triangle with these three points as vertices
   △ : (a b c : Point) → Drawing
   △ a b c = a ∙—∙ b ∪ b ∙—∙ c ∪ c ∙—∙ a
 
+  -- Drawing equality
+  _≐_ : Drawing → Drawing → Set ℓ
+  P ≐ Q = ∀ {p} → (P p → Q p) × (Q p → P p)
+  infix 4 _≐_
+
   -- The line from a to b is the same as from b to a
-  -- ∙—∙-comm : (a b : Point) → a ∙—∙ b ≐ b ∙—∙ a
-  -- ∙—∙-comm a b = {!   !}
+  ∙—∙-comm : (a b : Point) → a ∙—∙ b ≐ b ∙—∙ a
+  ∙—∙-comm a b = {!   !}
 
 {-
 mk-equilateral-△ : ⦃ Geometry ⦄ → (a b : Point) → _
