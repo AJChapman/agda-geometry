@@ -4,12 +4,10 @@ open import Level
 
 open import Data.Empty.Polymorphic using (⊥)
 open import Data.Sum using (_⊎_)
-open import Data.Product using (_×_)
+open import Data.Product using (_×_; _,_)
 open import Data.Unit.Polymorphic using (⊤)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
-
-Pred : Set ℓ → Set (suc ℓ)
-Pred A = A → Set ℓ
+open import Relation.Unary using (Pred; _∪_; _∩_)
 
 -- Geometry as predicates on a point type?
 -- Every member of the type is drawn.
@@ -26,6 +24,7 @@ record Geometry : Set (suc ℓ) where
 
     -- Measure the distance between two points
     _⊢⊣_ : Point → Point → Distance
+    ⊢⊣-comm : (a b : Point) → a ⊢⊣ b ≡ b ⊢⊣ a
 
     -- Add the distance between two points
     _+_ : Distance → Distance → Distance
@@ -34,15 +33,9 @@ record Geometry : Set (suc ℓ) where
     -- TODO: Angles
 
   Drawing : Set (suc ℓ)
-  Drawing = Pred Point
+  Drawing = Pred Point ℓ
 
-  -- Is this point in this drawing?
-  _∈_ : Point → Drawing → Set _
-  p ∈ P = P p
-
-  -- Empty drawing
-  ∅ : Drawing
-  ∅ _ = ⊥
+  -- Drawings can be merged using _∪_; intersections found using _∩_; compared using _≐_.
 
   -- Full drawing (some diligent toddler coloured the whole space in!)
   𝟙 : Drawing
@@ -52,20 +45,10 @@ record Geometry : Set (suc ℓ) where
   ∙ : Point → Drawing
   ∙ x = x ≡_
 
-  -- All intersection points of two drawings
-  _∩_ : Drawing → Drawing → Drawing
-  (P ∩ Q) p = P p ⊎ Q p
-  infixl 4 _∩_
-
-  -- Both drawings
-  _∪_ : Drawing → Drawing → Drawing
-  (P ∪ Q) p = P p × Q p
-  infixl 4 _∪_
-
   -- A line from point-to-point (input with \.\em\.)
   _∙—∙_ : Point → Point → Drawing
   (a ∙—∙ b) p = a ⊢⊣ p + b ⊢⊣ p ≡ a ⊢⊣ b
-  infixl 5 _∙—∙_
+  infixl 8 _∙—∙_
 
   -- An extension of a line to infinity on the right (doesn't draw between the points, only beyond)
   _∙~∙→_ : Point → Point → Drawing
@@ -87,22 +70,15 @@ record Geometry : Set (suc ℓ) where
   _←∙—∙→_ : Point → Point → Drawing
   a ←∙—∙→ b = a ←∙~∙ b ∪ a ∙—∙→ b
 
-  -- A circle centred on a point with a radius
+  -- A circle centred on a point with a radius (input with \O.)
   ⨀ : Point → Distance → Drawing
   ⨀ c r p = c ⊢⊣ p ≡ r
 
-  -- A triangle with these three points as vertices
+  -- A triangle with these three points as vertices (input with \Tw3)
   △ : (a b c : Point) → Drawing
   △ a b c = a ∙—∙ b ∪ b ∙—∙ c ∪ c ∙—∙ a
 
-  -- Drawing equality
-  _≐_ : Drawing → Drawing → Set ℓ
-  P ≐ Q = ∀ {p} → (P p → Q p) × (Q p → P p)
-  infix 4 _≐_
-
-  -- The line from a to b is the same as from b to a
-  ∙—∙-comm : (a b : Point) → a ∙—∙ b ≐ b ∙—∙ a
-  ∙—∙-comm a b = {!   !}
+open Geometry ⦃ ... ⦄ public
 
 {-
 mk-equilateral-△ : ⦃ Geometry ⦄ → (a b : Point) → _
