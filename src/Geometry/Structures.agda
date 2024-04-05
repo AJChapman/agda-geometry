@@ -4,7 +4,7 @@ open import Level
 
 open import Data.Empty.Polymorphic using (⊥)
 open import Data.Sum using (_⊎_)
-open import Data.Product using (_×_; _,_)
+open import Data.Product using (_×_; _,_; ∃)
 open import Data.Unit.Polymorphic using (⊤)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Relation.Unary using (Pred; _∪_; _∩_)
@@ -79,14 +79,3 @@ record Geometry : Set (suc ℓ) where
   △ a b c = a ∙—∙ b ∪ b ∙—∙ c ∪ c ∙—∙ a
 
 open Geometry ⦃ ... ⦄ public
-
-{-
-mk-equilateral-△ : ⦃ Geometry ⦄ → (a b : Point) → _
-mk-equilateral-△ a b c =
-  let d = distance a b
-      c₁ = ⨀ a d
-      c₂ = ⨀ b d
-      i = c₁ ∩ c₂ -- TODO: work out how to get a Point here (via Decidable -> Dec -> reflects?)
-  in △ a b i
-    -}
-
